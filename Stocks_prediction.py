@@ -22,15 +22,15 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # константы
 COMPANY = 'AAPL'  # ticker of stock
-PREDICTION_DAYS = 70  # days looking back to
+PREDICTION_DAYS = 365  # days looking back to
 
 
 def load_data():
     # загружаем данные с сайта yahoo
 
     # преобразуем дату к строковому формату
-    start = dt.datetime(2012, 1, 1).strftime('%Y-%m-%d')
-    end = dt.datetime(2020, 1, 1).strftime('%Y-%m-%d')
+    start = dt.datetime(2000, 1, 1).strftime('%Y-%m-%d')
+    end = dt.datetime(2022, 1, 1).strftime('%Y-%m-%d')
     # получаем данные с сайта yahoo
     data = yf.download(COMPANY, start=start, end=end, progress=False)
     # создаем синтетические признаки для улучшения метрики
@@ -44,7 +44,6 @@ def load_data():
 
 def prepare_data(data):
     # подготовка данных для обучения модели
-
     # масштабирвоание данных в пределах [0, 1]
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_data = scaler.fit_transform(data['Close'].values.reshape(-1, 1))
@@ -82,7 +81,9 @@ def building_model(features):
     # назначаем функцию оптимизации и функцию ошибки
     model.compile(optimizer='adam', loss='mean_squared_error')
     # обучаем модель
-    model.fit(x_train, y_train, epochs=25, batch_size=32)
+    model.fit(x_train, y_train, epochs=95, batch_size=32)
+    # сохраняем модель
+    model.save('predicter_v1')
     # возвращаем обученную модель
     return model
 
@@ -91,7 +92,7 @@ def testing_model(model, data, scaler):
     # тестируем модель
 
     # получаем тестовые данные с сайта yahoo
-    test_start = dt.datetime(2020, 1, 1).strftime('%Y-%m-%d')
+    test_start = dt.datetime(2022, 1, 2).strftime('%Y-%m-%d')
     test_end = dt.datetime.now().strftime('%Y-%m-%d')
     test_data = yf.download(tickers=COMPANY, start=test_start, end=test_end, progress=False)
     # фиксируем целевой признак теста, на нем будем проверять предсказание
@@ -128,7 +129,7 @@ def plot_test(actual_prices, predicted_prices):
     plt.plot(actual_prices, color='black', label=f"Actual {COMPANY} Price")
     plt.plot(predicted_prices, color='green', label=f"Predicted {COMPANY} Price")
     plt.title(f'{COMPANY} Share Price')
-    plt.xlabel('Time')
+    plt.xlabel('Time (days - begin with 2022.01.02)')
     plt.ylabel(f'{COMPANY}, Share Price')
     plt.legend()
     plt.show()
@@ -158,9 +159,9 @@ if __name__ == '__main__':
     model_inputs, actual_prices = testing_model(model=model, data=data, scaler=scaler)
     # делаем предсказание на тестовых данных
     predicted_prices = predictions_test(model=model, model_inputs=model_inputs, scaler=scaler)
-    print(f'MSE = {mean_squared_error(predicted_prices, actual_prices)}')
-    # выводим в консоль цену на следующий деньК
-    predict_next_day(model_inputs=model_inputs, model=model, scaler=scaler)
     # выводим на график линии предсказанной цены и реальной цены
     plot_test(actual_prices=actual_prices, predicted_prices=predicted_prices)
     # печатаем получившуюся на тесте ошибку
+    print(f'MSE = {mean_squared_error(predicted_prices, actual_prices)}')
+    # выводим в консоль цену на следующий день
+    predict_next_day(model_inputs=model_inputs, model=model, scaler=scaler)
