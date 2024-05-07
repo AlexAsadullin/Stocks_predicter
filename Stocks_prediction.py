@@ -149,6 +149,14 @@ def predict_next_day(model_inputs, model, scaler):
 if __name__ == '__main__':
     # получаем сырые данные для обучения
     data = load_data()
+    # только если вы спарсили данные с помощью parse_imoex
+    ''' 
+    TICKER = 'IMOEX'
+    DATE_BEGIN = dt.datetime.now().strftime('%Y-%m-%d')
+    file_name = f'{TICKER}_{DATE_BEGIN}.csv'
+    with open(file_name, 'r') as file:
+        data = pd.read_csv()
+    '''
     # получаем подготовленный датасет для обучения модели
     features = prepare_data(data=data)
     # получаем модель масштабирования
