@@ -14,16 +14,6 @@ def save_data(name: str, data, extension: str):
             file.write(data)
 
 
-def get_general_info(file_type='json', encoding='utf-8'):
-    url = f"https://iss.moex.com/iss/statistics/engines/stock/quotedsecurities.{file_type}"
-    request = requests.get(url)
-    request.encoding = encoding
-    data = request.json()
-    save_data('imoex_test', data)
-    all_stocks_df = pd.DataFrame(data['quotedsecurities']['data'], columns=data['quotedsecurities']['columns'])
-    return all_stocks_df
-
-
 def set_unix_time(days=100):
     '''function finds ending date "days" days before today, NOT including weekends'''
     DAYSEC = 24 * 60 * 60
